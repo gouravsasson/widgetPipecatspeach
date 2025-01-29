@@ -10,7 +10,7 @@ import {
 import useSessionStore from "./store/session";
 import { axiosConfig3 } from "./axiosConfig";
 import axios from "axios";
-import { useWidgetContext } from "./constexts/WidgetContext";
+// import { useWidgetContext } from "./constexts/WidgetContext";
 
 function VoiceAgent(schemaName: any) {
   const client = useRTVIClient();
@@ -27,7 +27,7 @@ function VoiceAgent(schemaName: any) {
   const [transcription, setTranscription] = useState("");
   const [botMessages, setBotMessages] = useState([]);
   const [userMessages, setUserMessages] = useState([]);
-  const { agent_id, schema } = useWidgetContext();
+  // const { agent_id, schema } = useWidgetContext();
   const [appState, setAppState] = useState<
     "idle" | "ready" | "connecting" | "connected"
   >("idle");
@@ -99,7 +99,7 @@ function VoiceAgent(schemaName: any) {
     };
 
     transcriptionResponse();
-  }, [transportState, schema, sessionId]);
+  }, [transportState]);
 
   useEffect(() => {
     if (!client) return;

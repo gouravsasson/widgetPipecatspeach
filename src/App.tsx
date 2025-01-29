@@ -3,7 +3,7 @@ import { RTVIClient } from "@pipecat-ai/client-js";
 import { DailyTransport } from "@pipecat-ai/daily-transport";
 import { RTVIClientAudio, RTVIClientProvider } from "@pipecat-ai/client-react";
 // import Videobot from "./Video";
-// import { useWidgetContext } from "./constexts/WidgetContext";
+import { useWidgetContext } from "./constexts/WidgetContext";
 import axios from "axios";
 import { FunctionCallParams } from "@pipecat-ai/client-js";
 import { LLMHelper } from "@pipecat-ai/client-js";
@@ -25,10 +25,10 @@ function App() {
   const [isAgentDataLoaded, setIsAgentDataLoaded] = useState(false);
   const [apiKey, setApiKey] = useState<string>("");
   const setSessionId = useSessionStore((state) => state.setSessionId);
-  // const { agent_id, schema } = useWidgetContext();
+  const { agent_id, schema } = useWidgetContext();
   const baseurl = `https://app.snowie.ai`;
-  const agent_id = "f11efdbd-df2f-4b9f-abca-f0a71867d62a";
-  const schema = "6af30ad4-a50c-4acc-8996-d5f562b6987f";
+  // const agent_id = "f11efdbd-df2f-4b9f-abca-f0a71867d62a";
+  // const schema = "6af30ad4-a50c-4acc-8996-d5f562b6987f";
 
   useEffect(() => {
     const checkAgentType = async () => {

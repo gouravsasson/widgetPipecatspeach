@@ -10,6 +10,7 @@ import {
 import useSessionStore from "./store/session";
 import { axiosConfig3 } from "./axiosConfig";
 import axios from "axios";
+import { useWidgetContext } from "./constexts/WidgetContext";
 
 function VoiceAgent(schemaName: any) {
   const client = useRTVIClient();
@@ -26,6 +27,7 @@ function VoiceAgent(schemaName: any) {
   const [transcription, setTranscription] = useState("");
   const [botMessages, setBotMessages] = useState([]);
   const [userMessages, setUserMessages] = useState([]);
+  const { agent_id, schema } = useWidgetContext();
   const [appState, setAppState] = useState<
     "idle" | "ready" | "connecting" | "connected"
   >("idle");
@@ -85,7 +87,7 @@ function VoiceAgent(schemaName: any) {
         const response = await axios.post(
           `api/start-transcription/`,
           {
-            schema_name: schemaName.schemaName,
+            schema_name: schema,
             call_session_id: sessionId,
           },
           axiosConfig3
@@ -97,7 +99,7 @@ function VoiceAgent(schemaName: any) {
     };
 
     transcriptionResponse();
-  }, [transportState, schemaName, sessionId]);
+  }, [transportState, schema, sessionId]);
 
   useEffect(() => {
     if (!client) return;
@@ -115,7 +117,7 @@ function VoiceAgent(schemaName: any) {
   }, [client]);
 
   client?.on(RTVIEvent.BotStartedSpeaking, () => {
-    set
+    set;
   });
   client?.on(RTVIEvent.BotStoppedSpeaking, () => setTranscription(botMessages));
   // client?.on(RTVIEvent.UserStartedSpeaking, () => {
@@ -124,7 +126,9 @@ function VoiceAgent(schemaName: any) {
   // client?.on(RTVIEvent.UserStoppedSpeaking, () => {
   //   setTranscription(userMessages);
   // });
-  client?.on(RTVIEvent.BotTranscript, (data) => {setBotMessages(data.text)});
+  client?.on(RTVIEvent.BotTranscript, (data) => {
+    setBotMessages(data.text);
+  });
 
   // client?.on(RTVIEvent.UserTranscript, (data) => {
   //   setUserMessages(data.text);
@@ -162,7 +166,7 @@ function VoiceAgent(schemaName: any) {
         `${axiosConfig3.baseURL}/api/end_call_session/`,
         {
           call_session_id: sessionId,
-          schema_name: schemaName.schemaName,
+          schema_name: schema,
         },
         {
           headers: {

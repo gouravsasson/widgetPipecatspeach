@@ -12,7 +12,7 @@ import { axiosConfig3 } from "./axiosConfig";
 import axios from "axios";
 import { useWidgetContext } from "./constexts/WidgetContext";
 
-function VoiceAgent(  ) {
+function VoiceAgent() {
   const client = useRTVIClient();
   const [value, setValue] = useState("");
   const [isConnected, setIsConnected] = useState(false);
@@ -27,10 +27,14 @@ function VoiceAgent(  ) {
   const [transcription, setTranscription] = useState("");
   const [botMessages, setBotMessages] = useState([]);
   const [userMessages, setUserMessages] = useState([]);
+  const [isHovered, setIsHovered] = useState(false);
   const { agent_id, schema } = useWidgetContext();
   const [appState, setAppState] = useState<
     "idle" | "ready" | "connecting" | "connected"
   >("idle");
+
+  // const agent_id = "f11efdbd-df2f-4b9f-abca-f0a71867d62a";
+  // const schema = "6af30ad4-a50c-4acc-8996-d5f562b6987f";
   const particles = useMemo(
     () =>
       Array.from({ length: 180 }, () => ({
@@ -85,7 +89,7 @@ function VoiceAgent(  ) {
     const transcriptionResponse = async () => {
       try {
         const response = await axios.post(
-          `api/start-transcription/`,
+          `/api/start-transcription/`,
           {
             schema_name: schema,
             call_session_id: sessionId,
@@ -132,53 +136,43 @@ function VoiceAgent(  ) {
   //   setUserMessages(data.text);
   // });
 
-  const toggleMic = useCallback(() => {
-    if (!isActive) {
-      setIsActive(true);
-      setIsMuted(false);
+  // const toggleMic = useCallback(() => {
+  //   if (!isActive) {
+  //     setIsActive(true);
+  //     setIsMuted(false);
+  //   } else {
+  //     setIsMuted(!isMuted);
+  //   }
+  // }, [isActive, isMuted]);
+  const handleToggleConnection = async () => {
+    if (!isConnected) {
+      // Connect
+      if (!client) return;
+      try {
+        await client.connect();
+        setIsConnected(true);
+      } catch (error) {
+        console.error("Connection error:", error);
+        alert("Failed to connect. Please try again.");
+      }
     } else {
-      setIsMuted(!isMuted);
-    }
-  }, [isActive, isMuted]);
-  const handleConnect = async () => {
-    if (isConnected || !client) return;
-    try {
-      await client.connect();
-      setIsConnected(true);
-    } catch (error) {
-      console.error("Connection error:", error);
-      alert("Failed to connect. Please try again.");
-    }
-  };
-
-  const handleDisconnect = async () => {
-    if (!isConnected || !client) return;
-    if (!sessionId) {
-      console.error("Cannot end session: Missing session ID");
-      return;
-    }
-    try {
-      setSessionId(null);
-
-      await axios.post(
-        `${axiosConfig3.baseURL}/api/end_call_session/`,
-        {
+      // Disconnect
+      if (!sessionId) {
+        console.error("Cannot end session: Missing session ID");
+        return;
+      }
+      try {
+        await axios.post(`${axiosConfig3.baseURL}/api/end_call_session/`, {
           call_session_id: sessionId,
           schema_name: schema,
-        },
-        {
-          headers: {
-            // Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      setSessionId(null);
-      await client.disconnect();
-      setIsConnected(false);
-    } catch (error) {
-      console.error("Disconnection error:", error);
-      alert("Failed to disconnect. Please try again.");
+        });
+        setSessionId(null);
+        await client?.disconnect();
+        setIsConnected(false);
+      } catch (error) {
+        console.error("Disconnection error:", error);
+        alert("Failed to disconnect. Please try again.");
+      }
     }
   };
   // useEffect(() => {
@@ -204,12 +198,12 @@ function VoiceAgent(  ) {
     <div className="voice-interface">
       <div className="glass-sphere">
         {/* Enhanced Glass Background */}
-        <div className="absolute inset-0 rounded-full">
-          <div className="absolute inset-0 rounded-full glass-layer-primary" />
-          <div className="absolute inset-0 rounded-full glass-layer-secondary" />
-          <div className="absolute inset-0 rounded-full glass-layer-tertiary" />
-          <div className="absolute inset-0 rounded-full glass-layer-noise" />
-        </div>
+        {/* <div className="absolute inset-0 rounded-full">
+            <div className="absolute inset-0 rounded-full glass-layer-primary" />
+            <div className="absolute inset-0 rounded-full glass-layer-secondary" />
+            <div className="absolute inset-0 rounded-full glass-layer-tertiary" />
+            <div className="absolute inset-0 rounded-full glass-layer-noise" />
+          </div> */}
 
         {/* Optimized Particle Field */}
         <div className="absolute inset-0 overflow-hidden rounded-full">
@@ -236,7 +230,7 @@ function VoiceAgent(  ) {
         {rings.map((ring, ringIndex) => (
           <div
             key={ringIndex}
-            className="absolute left-1/2 top-1/2"
+            className="absolute top-1/2"
             style={{
               width: `${ring.radius * 2}px`,
               height: `${ring.radius * 2}px`,
@@ -274,9 +268,9 @@ function VoiceAgent(  ) {
 
         {/* Enhanced Microphone Button */}
         <button
-          onClick={() => {
-            handleConnect(), toggleMic();
-          }}
+          onClick={handleToggleConnection}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
           className={`mic-button-enhanced relative rounded-full flex items-center justify-center z-10
             ${
               isActive
@@ -311,12 +305,32 @@ function VoiceAgent(  ) {
           <div className="absolute inset-2 rounded-full enhanced-inner-glow" />
 
           <div className="transform transition-all duration-500 hover:scale-110 relative z-10">
-            {isMuted ? <MicOff size={48} /> : <Mic size={48} />}
+            {/* {isMuted ? <MicOff size={48} /> : <Mic size={48} />} */}
+            {!isConnected ? (
+              <Mic size={48} />
+            ) : (
+              <div className="relative">
+                <div
+                  className={`transition-opacity duration-200 ${
+                    isHovered ? "opacity-0" : "opacity-100"
+                  }`}
+                >
+                  <Mic size={48} />
+                </div>
+                <div
+                  className={`absolute top-0 left-0 transition-opacity duration-200 ${
+                    isHovered ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  <PhoneOff size={48} className="text-white" />
+                </div>
+              </div>
+            )}
           </div>
         </button>
 
         {/* Status Text */}
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-[280px]">
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 w-full max-w-[280px] mt-[-2]">
           <div
             className={`status-panel py-3 px-6 transform transition-all duration-700
             ${
@@ -325,19 +339,13 @@ function VoiceAgent(  ) {
                 : "translate-y-4 opacity-0 scale-95"
             }`}
           >
-            <div className="absolute inset-0 overflow-hidden rounded-lg enhanced-glass-text" />
+            <div className="absolute inset-0 overflow-hidden bg-white/70 rounded-lg enhanced-glass-text" />
             <p className="relative text-sm font-light text-center text-white/95 tracking-wider">
               <div className="live-subtitles">
-                <p>{transcription}</p>
+                <p className="text-blue-400">{transcription}</p>
               </div>{" "}
             </p>
           </div>
-          <button
-            onClick={handleDisconnect}
-            className="end-call-button ml-[40%] pt-8"
-          >
-            <PhoneOff size={48} />
-          </button>
         </div>
       </div>
     </div>

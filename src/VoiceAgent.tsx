@@ -10,7 +10,7 @@ import {
 import useSessionStore from "./store/session";
 import { axiosConfig3 } from "./axiosConfig";
 import axios from "axios";
-import { useWidgetContext } from "./constexts/WidgetContext";
+// import { useWidgetContext } from "./constexts/WidgetContext";
 
 function VoiceAgent() {
   const client = useRTVIClient();
@@ -28,13 +28,13 @@ function VoiceAgent() {
   const [botMessages, setBotMessages] = useState([]);
   const [userMessages, setUserMessages] = useState([]);
   const [isHovered, setIsHovered] = useState(false);
-  const { agent_id, schema } = useWidgetContext();
+  // const { agent_id, schema } = useWidgetContext();
   const [appState, setAppState] = useState<
     "idle" | "ready" | "connecting" | "connected"
   >("idle");
 
-  // const agent_id = "f11efdbd-df2f-4b9f-abca-f0a71867d62a";
-  // const schema = "6af30ad4-a50c-4acc-8996-d5f562b6987f";
+  const agent_id = "d03dc174-e768-48cc-9950-9acf10a5cc6d";
+  const schema = "6af30ad4-a50c-4acc-8996-d5f562b6987f";
   const particles = useMemo(
     () =>
       Array.from({ length: 180 }, () => ({

@@ -3,7 +3,7 @@ import { RTVIClient } from "@pipecat-ai/client-js";
 import { DailyTransport } from "@pipecat-ai/daily-transport";
 import { RTVIClientAudio, RTVIClientProvider } from "@pipecat-ai/client-react";
 // import Videobot from "./Video";
-import { useWidgetContext } from "./constexts/WidgetContext";
+// import { useWidgetContext } from "./constexts/WidgetContext";
 import axios from "axios";
 import { FunctionCallParams } from "@pipecat-ai/client-js";
 import { LLMHelper } from "@pipecat-ai/client-js";
@@ -25,10 +25,10 @@ function App() {
   const [isAgentDataLoaded, setIsAgentDataLoaded] = useState(false);
   const [apiKey, setApiKey] = useState<string>("");
   const setSessionId = useSessionStore((state) => state.setSessionId);
-  const { agent_id, schema } = useWidgetContext();
+  // const { agent_id, schema } = useWidgetContext();
   const baseurl = `https://app.snowie.ai`;
-  // const agent_id = "f11efdbd-df2f-4b9f-abca-f0a71867d62a";
-  // const schema = "6af30ad4-a50c-4acc-8996-d5f562b6987f";
+  const agent_id = "d03dc174-e768-48cc-9950-9acf10a5cc6d";
+  const schema = "6af30ad4-a50c-4acc-8996-d5f562b6987f";
 
   useEffect(() => {
     const checkAgentType = async () => {
@@ -355,7 +355,8 @@ function App() {
               return { error: "Failed to book the appointment" };
             }
             return { success: true };
-          } else if (fn.functionName === "insert_in_ghl") {
+          } 
+          else if (fn.functionName === "insert_in_ghl") {
             const { user_name, user_email, user_phone, appointment_date } =
               args;
             console.log("GHL Integration - User Details:", {
@@ -410,7 +411,6 @@ function App() {
                   console.log(
                     "GHL Integration - Appointment Scheduled Successfully"
                   );
-                  // await speakExecutionMessage(fn.functionName, "success");
 
                   return {
                     success: true,
@@ -418,16 +418,19 @@ function App() {
                     contactId: contact_id,
                   };
                 }
+              } else {
+                console.log("Booking failed:");
+                return { error: "Failed to book the appointment" };
               }
 
-              console.error(
-                "GHL Integration - Failed to create contact or appointment"
-              );
-              return {
-                success: true,
-                message: "Contact created and appointment scheduled in GHL",
-                // contactId: contact_id,
-              };
+              // console.error(
+              //   "GHL Integration - Failed to create contact or appointment"
+              // );
+              // return {
+              //   success: true,
+              //   message: "Contact created and appointment scheduled in GHL",
+              //   // contactId: contact_id,
+              // };
             } catch (error) {
               console.error("GHL Integration Error:", error);
               return { error: "Failed to integrate with GHL" };

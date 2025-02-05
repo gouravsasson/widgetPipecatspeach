@@ -10,31 +10,45 @@ import {
 import useSessionStore from "./store/session";
 import { axiosConfig3 } from "./axiosConfig";
 import axios from "axios";
-// import { useWidgetContext } from "./constexts/WidgetContext";
+
+import { useWidgetContext } from "./constexts/WidgetContext";
 
 function VoiceAgent() {
   const client = useRTVIClient();
   const [value, setValue] = useState("");
-  const [isConnected, setIsConnected] = useState(false);
-  const [llmHelper, setLLMHelper] = useState<LLMHelper | null>(null);
+  // const [llmHelper, setLLMHelper] = useState<LLMHelper | null>(null);
   const transportState = useRTVIClientTransportState();
-  const setSessionId = useSessionStore((state) => state.setSessionId);
-  const sessionId = useSessionStore((state) => state.sessionId);
-  console.log(sessionId);
+  console.log(transportState);
+  const {
+    setSessionId,
+    sessionId,
+    setTransport,
+    setIsConnected,
+    isConnected,
+    transcription,
+    setTranscription,
+    setRefresh,
+    refresh,
+  } = useSessionStore();
+  console.log(isConnected);
   const [messages, setMessages] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [transcription, setTranscription] = useState("");
   const [botMessages, setBotMessages] = useState([]);
   const [userMessages, setUserMessages] = useState([]);
   const [isHovered, setIsHovered] = useState(false);
-  const { agent_id, schema } = useWidgetContext();
   const [appState, setAppState] = useState<
     "idle" | "ready" | "connecting" | "connected"
   >("idle");
-
-  // const agent_id = "d03dc174-e768-48cc-9950-9acf10a5cc6d";
+  useEffect(() => {
+    if (transportState) {
+      setTransport(transportState);
+    }
+  }, [transportState]);
+  const { agent_id, schema } = useWidgetContext();
+  // const agent_id = "d86278ce-beff-4d75-a311-3400bd774b0c";
   // const schema = "6af30ad4-a50c-4acc-8996-d5f562b6987f";
+
   const particles = useMemo(
     () =>
       Array.from({ length: 180 }, () => ({
@@ -96,7 +110,7 @@ function VoiceAgent() {
           },
           axiosConfig3
         );
-        console.log("Transcription API Response:", response.data);
+        // console.log("Transcription API Response:", response.data);
       } catch (error) {
         console.error("Failed to start transcription:", error);
       }
@@ -105,48 +119,14 @@ function VoiceAgent() {
     transcriptionResponse();
   }, [transportState]);
 
-  useEffect(() => {
-    if (!client) return;
-
-    const helper = new LLMHelper({
-      callbacks: {},
-    });
-
-    // client.registerHelper("llm", helper);
-    setLLMHelper(helper);
-
-    return () => {
-      client.unregisterHelper("llm");
-    };
-  }, [client]);
-
   client?.on(RTVIEvent.BotStartedSpeaking, () => {});
   client?.on(RTVIEvent.BotStoppedSpeaking, () => setTranscription(botMessages));
-  // client?.on(RTVIEvent.UserStartedSpeaking, () => {
-  //   setUserMessages([]);
-  // });
-  // client?.on(RTVIEvent.UserStoppedSpeaking, () => {
-  //   setTranscription(userMessages);
-  // });
   client?.on(RTVIEvent.BotTranscript, (data) => {
     setBotMessages(data.text);
   });
 
-  // client?.on(RTVIEvent.UserTranscript, (data) => {
-  //   setUserMessages(data.text);
-  // });
-
-  // const toggleMic = useCallback(() => {
-  //   if (!isActive) {
-  //     setIsActive(true);
-  //     setIsMuted(false);
-  //   } else {
-  //     setIsMuted(!isMuted);
-  //   }
-  // }, [isActive, isMuted]);
   const handleToggleConnection = async () => {
     if (!isConnected) {
-      // Connect
       if (!client) return;
       try {
         await client.connect();
@@ -156,7 +136,6 @@ function VoiceAgent() {
         alert("Failed to connect. Please try again.");
       }
     } else {
-      // Disconnect
       if (!sessionId) {
         console.error("Cannot end session: Missing session ID");
         return;
@@ -169,43 +148,17 @@ function VoiceAgent() {
         setSessionId(null);
         await client?.disconnect();
         setIsConnected(false);
+        setRefresh(!refresh);
       } catch (error) {
         console.error("Disconnection error:", error);
         alert("Failed to disconnect. Please try again.");
       }
     }
   };
-  // useEffect(() => {
-  //   if (isActive && !isMuted) {
-  //     const phrases = [
-  //       "Processing voice input...",
-  //       "Analyzing audio patterns...",
-  //       "Converting speech to text...",
-  //       "Interpreting voice commands...",
-  //     ];
-  //     let index = 0;
-  //     const interval = setInterval(() => {
-  //       setTranscription(phrases[index % phrases.length]);
-  //       index++;
-  //     }, 2000);
-  //     return () => clearInterval(interval);
-  //   } else {
-  //     setTranscription("");
-  //   }
-  // }, [isActive, isMuted]);
 
   return (
     <div className="voice-interface">
       <div className="glass-sphere">
-        {/* Enhanced Glass Background */}
-        {/* <div className="absolute inset-0 rounded-full">
-            <div className="absolute inset-0 rounded-full glass-layer-primary" />
-            <div className="absolute inset-0 rounded-full glass-layer-secondary" />
-            <div className="absolute inset-0 rounded-full glass-layer-tertiary" />
-            <div className="absolute inset-0 rounded-full glass-layer-noise" />
-          </div> */}
-
-        {/* Optimized Particle Field */}
         <div className="absolute inset-0 overflow-hidden rounded-full">
           {particles.map((particle, i) => (
             <div
@@ -226,7 +179,6 @@ function VoiceAgent() {
           ))}
         </div>
 
-        {/* Optimized Orbital System */}
         {rings.map((ring, ringIndex) => (
           <div
             key={ringIndex}
@@ -266,7 +218,6 @@ function VoiceAgent() {
           </div>
         ))}
 
-        {/* Enhanced Microphone Button */}
         <button
           onClick={handleToggleConnection}
           onMouseEnter={() => setIsHovered(true)}
@@ -284,7 +235,6 @@ function VoiceAgent() {
           <div className="absolute inset-0 rounded-full glass-button-secondary" />
           <div className="absolute inset-0 rounded-full glass-button-border" />
 
-          {/* Optimized Pulse Rings */}
           {Array.from({ length: 4 }).map((_, ring) => (
             <div
               key={ring}
@@ -310,7 +260,7 @@ function VoiceAgent() {
               <Mic size={48} />
             ) : (
               <div className="relative">
-                <div
+                {/* <div
                   className={`transition-opacity duration-200 ${
                     isHovered ? "opacity-0" : "opacity-100"
                   }`}
@@ -321,10 +271,10 @@ function VoiceAgent() {
                   className={`absolute top-0 left-0 transition-opacity duration-200 ${
                     isHovered ? "opacity-100" : "opacity-0"
                   }`}
-                >
-                  <PhoneOff size={48} className="text-white" />
-                </div>
+                > */}
+                <PhoneOff size={48} className="text-white" />
               </div>
+              // </div>
             )}
           </div>
         </button>
